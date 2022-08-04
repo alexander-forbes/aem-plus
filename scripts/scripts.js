@@ -17,21 +17,6 @@
  */
 
 export function sampleRUM(checkpoint, data = {}) {
-  sampleRUM.defer = sampleRUM.defer || [];
-  const defer = (fnname) => {
-    sampleRUM[fnname] = sampleRUM[fnname]
-      || ((...args) => sampleRUM.defer.push({ fnname, args }));
-  };
-  sampleRUM.drain = sampleRUM.drain
-    || ((dfnname, fn) => {
-      sampleRUM[dfnname] = fn;
-      sampleRUM.defer
-        .filter(({ fnname }) => dfnname === fnname)
-        .forEach(({ fnname, args }) => sampleRUM[fnname](...args));
-    });
-  sampleRUM.on = (chkpnt, fn) => { sampleRUM.cases[chkpnt] = fn; };
-  defer('observe');
-  defer('cwv');
   try {
     window.hlx = window.hlx || {};
     if (!window.hlx.rum) {
@@ -43,34 +28,39 @@ export function sampleRUM(checkpoint, data = {}) {
       const random = Math.random();
       const isSelected = (random * weight < 1);
       // eslint-disable-next-line object-curly-newline
-      window.hlx.rum = { weight, id, random, isSelected, sampleRUM };
+      window.hlx.rum = { weight, id, random, isSelected };
     }
-    const { weight, id } = window.hlx.rum;
-    if (window.hlx && window.hlx.rum && window.hlx.rum.isSelected) {
-      const sendPing = (pdata = data) => {
+    const { random, weight, id } = window.hlx.rum;
+    if (random && (random * weight < 1)) {
+      const sendPing = () => {
         // eslint-disable-next-line object-curly-newline, max-len, no-use-before-define
         const body = JSON.stringify({ weight, id, referer: window.location.href, generation: RUM_GENERATION, checkpoint, ...data });
         const url = `https://rum.hlx.page/.rum/${weight}`;
         // eslint-disable-next-line no-unused-expressions
         navigator.sendBeacon(url, body);
-        // eslint-disable-next-line no-console
-        console.debug(`ping:${checkpoint}`, pdata);
       };
-      sampleRUM.cases = sampleRUM.cases || {
-        cwv: () => sampleRUM.cwv(data) || true,
-        lazy: () => {
-          // use classic script to avoid CORS issues
-          const script = document.createElement('script');
-          script.src = 'https://rum.hlx.page/.rum/@adobe/helix-rum-enhancer@^1/src/index.js';
-          document.head.appendChild(script);
-          sendPing(data);
-          return true;
-        },
-      };
-      sendPing(data);
-      if (sampleRUM.cases[checkpoint]) { sampleRUM.cases[checkpoint](); }
+      sendPing();
+      // special case CWV
+      if (checkpoint === 'cwv') {
+        // use classic script to avoid CORS issues
+        const script = document.createElement('script');
+        script.src = 'https://rum.hlx.page/.rum/web-vitals/dist/web-vitals.iife.js';
+        script.onload = () => {
+          const storeCWV = (measurement) => {
+            data.cwv = {};
+            data.cwv[measurement.name] = measurement.value;
+            sendPing();
+          };
+            // When loading `web-vitals` using a classic script, all the public
+            // methods can be found on the `webVitals` global namespace.
+          window.webVitals.getCLS(storeCWV);
+          window.webVitals.getFID(storeCWV);
+          window.webVitals.getLCP(storeCWV);
+        };
+        document.head.appendChild(script);
+      }
     }
-  } catch (error) {
+  } catch (e) {
     // something went wrong
   }
 }
@@ -143,24 +133,27 @@ export function toCamelCase(name) {
  * Replace icons with inline SVG and prefix with codeBasePath.
  * @param {Element} element
  */
+function replaceIcons(element) {
+  element.querySelectorAll('img.icon').forEach((img) => {
+    const span = document.createElement('span');
+    span.className = img.className;
+    img.replaceWith(span);
+  });
+}
+
+/**
+ * Replace icons with inline SVG and prefix with codeBasePath.
+ * @param {Element} element
+ */
 export function decorateIcons(element = document) {
-  element.querySelectorAll('span.icon').forEach(async (span) => {
-    if (span.classList.length < 2 || !span.classList[1].startsWith('icon-')) {
-      return;
-    }
-    const icon = span.classList[1].substring(5);
-    // eslint-disable-next-line no-use-before-define
-    const resp = await fetch(`${window.hlx.codeBasePath}${ICON_ROOT}/${icon}.svg`);
-    if (resp.ok) {
-      const iconHTML = await resp.text();
-      if (iconHTML.match(/<style/i)) {
-        const img = document.createElement('img');
-        img.src = `data:image/svg+xml,${encodeURIComponent(iconHTML)}`;
-        span.appendChild(img);
-      } else {
-        span.innerHTML = iconHTML;
-      }
-    }
+  // prepare for forward compatible icon handling
+  replaceIcons(element);
+
+  element.querySelectorAll('span.icon').forEach((span) => {
+    const iconName = span.className.split('icon-')[1];
+    fetch(`${window.hlx.codeBasePath}/icons/${iconName}.svg`).then((resp) => {
+      if (resp.status === 200) resp.text().then((svg) => { span.innerHTML = svg; });
+    });
   });
 }
 
@@ -184,7 +177,7 @@ export async function fetchPlaceholders(prefix = 'default') {
             window.placeholders[prefix] = placeholders;
             resolve();
           });
-      } catch (error) {
+      } catch (e) {
         // error loading placeholders
         window.placeholders[prefix] = {};
         reject();
@@ -233,13 +226,6 @@ export function readBlockConfig(block) {
           } else {
             value = as.map((a) => a.href);
           }
-        } else if (col.querySelector('img')) {
-          const imgs = [...col.querySelectorAll('img')];
-          if (imgs.length === 1) {
-            value = imgs[0].src;
-          } else {
-            value = imgs.map((img) => img.src);
-          }
         } else if (col.querySelector('p')) {
           const ps = [...col.querySelectorAll('p')];
           if (ps.length === 1) {
@@ -283,7 +269,8 @@ export function decorateSections($main) {
       const keys = Object.keys(meta);
       keys.forEach((key) => {
         if (key === 'style') section.classList.add(toClassName(meta.style));
-        else section.dataset[toCamelCase(key)] = meta[key];
+        else if (key === 'anchor' || key === 'id') toClassName(section.id = meta[key]);
+        else section.dataset[key] = meta[key];
       });
       sectionMeta.remove();
     }
@@ -371,17 +358,17 @@ export async function loadBlock(block, eager = false) {
             if (mod.default) {
               await mod.default(block, blockName, document, eager);
             }
-          } catch (error) {
+          } catch (err) {
             // eslint-disable-next-line no-console
-            console.log(`failed to load module for ${blockName}`, error);
+            console.log(`failed to load module for ${blockName}`, err);
           }
           resolve();
         })();
       });
       await Promise.all([cssLoaded, decorationComplete]);
-    } catch (error) {
+    } catch (err) {
       // eslint-disable-next-line no-console
-      console.log(`failed to load block ${blockName}`, error);
+      console.log(`failed to load block ${blockName}`, err);
     }
     block.setAttribute('data-block-status', 'loaded');
   }
@@ -444,7 +431,7 @@ export function createOptimizedPicture(src, alt = '', eager = false, breakpoints
 /**
  * Normalizes all headings within a container element.
  * @param {Element} el The container element
- * @param {[string]} allowedHeadings The list of allowed headings (h1 ... h6)
+ * @param {[string]]} allowedHeadings The list of allowed headings (h1 ... h6)
  */
 export function normalizeHeadings(el, allowedHeadings) {
   const allowed = allowedHeadings.map((h) => h.toLowerCase());
@@ -474,9 +461,9 @@ export function normalizeHeadings(el, allowedHeadings) {
  */
 function decorateTemplateAndTheme() {
   const template = getMetadata('template');
-  if (template) document.body.classList.add(toClassName(template));
+  if (template) document.body.classList.add(template);
   const theme = getMetadata('theme');
-  if (theme) document.body.classList.add(toClassName(theme));
+  if (theme) document.body.classList.add(theme);
 }
 
 /**
@@ -496,12 +483,12 @@ export function decorateButtons(element) {
           up.classList.add('button-container');
         }
         if (up.childNodes.length === 1 && up.tagName === 'STRONG'
-          && twoup.childNodes.length === 1 && twoup.tagName === 'P') {
+            && twoup.childNodes.length === 1 && twoup.tagName === 'P') {
           a.className = 'button primary';
           twoup.classList.add('button-container');
         }
         if (up.childNodes.length === 1 && up.tagName === 'EM'
-          && twoup.childNodes.length === 1 && twoup.tagName === 'P') {
+            && twoup.childNodes.length === 1 && twoup.tagName === 'P') {
           a.className = 'button secondary';
           twoup.classList.add('button-container');
         }
@@ -571,9 +558,9 @@ export function initHlx() {
   if (scriptEl) {
     try {
       [window.hlx.codeBasePath] = new URL(scriptEl.src).pathname.split('/scripts/scripts.js');
-    } catch (error) {
+    } catch (e) {
       // eslint-disable-next-line no-console
-      console.log(error);
+      console.log(e);
     }
   }
 }
@@ -588,29 +575,22 @@ initHlx();
 
 const LCP_BLOCKS = ['hero']; // add your LCP blocks to the list
 const RUM_GENERATION = 'project-1'; // add your RUM generation information here
-const ICON_ROOT = '/icons';
 
 sampleRUM('top');
-
 window.addEventListener('load', () => sampleRUM('load'));
 
-window.addEventListener('unhandledrejection', (event) => {
-  sampleRUM('error', { source: event.reason.sourceURL, target: event.reason.line });
-});
-
-window.addEventListener('error', (event) => {
-  sampleRUM('error', { source: event.filename, target: event.lineno });
-});
+document.addEventListener('click', () => sampleRUM('click'));
 
 loadPage(document);
 
 function buildHeroBlock(main) {
-  const h1 = main.querySelector('h1');
+  const headings = main.querySelectorAll('main > div:first-child h1, main > div:first-child  h2');
   const picture = main.querySelector('picture');
-  // eslint-disable-next-line no-bitwise
-  if (h1 && picture && (h1.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_PRECEDING)) {
+  if (headings[0] && picture
+    // eslint-disable-next-line no-bitwise
+    && (headings[0].compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_PRECEDING)) {
     const section = document.createElement('div');
-    section.append(buildBlock('hero', { elems: [picture, h1] }));
+    section.append(buildBlock('hero', { elems: [picture, ...headings] }));
     main.prepend(section);
   }
 }
@@ -627,6 +607,35 @@ function loadFooter(footer) {
   footer.append(footerBlock);
   decorateBlock(footerBlock);
   loadBlock(footerBlock);
+}
+
+function decorateExternalLinks(main) {
+  main.querySelectorAll('a').forEach((a) => {
+    const href = a.getAttribute('href');
+    if (!href.startsWith('/')
+      && !href.startsWith('#')) {
+      a.setAttribute('target', '_blank');
+    }
+  });
+}
+
+/**
+ * Link handling
+ * - Finds and decorates modal links.
+ * - Sets target for pdf links to _blank
+ * @param {Element} main The container element
+ */
+async function handleLinks(main) {
+  main.querySelectorAll('a').forEach(async (a) => {
+    const href = a.getAttribute('href');
+    if (href.includes('/modals/')) {
+      // eslint-disable-next-line import/no-cycle
+      const { handleModalLink } = await import('../blocks/modal/modal.js');
+      handleModalLink(a);
+    } else if (href.includes('.') && href.split('.').pop().toUpperCase() === 'PDF') {
+      a.setAttribute('target', '_blank');
+    }
+  });
 }
 
 /**
@@ -649,12 +658,27 @@ function buildAutoBlocks(main) {
 export function decorateMain(main) {
   // hopefully forward compatible button decoration
   decorateButtons(main);
-  decorateIcons(main);
+  decorateExternalLinks(main);
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
-  sampleRUM.observe(main.querySelectorAll('div[data-block-name]'));
-  window.setTimeout(() => sampleRUM.observe(main.querySelectorAll('picture > img')), 1000);
+}
+
+/**
+ * Loads a fragment.
+ * @param {string} path The path of the fragment
+ * @returns {HTMLElement} The root element of the fragment
+ */
+export async function loadFragment(path) {
+  const resp = await fetch(`${path}.plain.html`);
+  if (resp.ok) {
+    const main = document.createElement('main');
+    main.innerHTML = await resp.text();
+    decorateMain(main);
+    await loadBlocks(main);
+    return main;
+  }
+  return null;
 }
 
 /**
@@ -683,9 +707,10 @@ async function loadLazy(doc) {
   loadHeader(doc.querySelector('header'));
   loadFooter(doc.querySelector('footer'));
 
+  handleLinks(main);
+
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
-  addFavIcon(`${window.hlx.codeBasePath}/styles/favicon.svg`);
-  sampleRUM('lazy');
+  addFavIcon(`${window.hlx.codeBasePath}/icons/favicon.png`);
 }
 
 /**

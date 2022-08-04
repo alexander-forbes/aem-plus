@@ -1,4 +1,4 @@
-import { readBlockConfig, decorateIcons } from '../../scripts/scripts.js';
+import { readBlockConfig } from '../../scripts/scripts.js';
 
 /**
  * collapses all open nav sections
@@ -11,6 +11,18 @@ function collapseAllNavSections(sections) {
   });
 }
 
+async function decorateTopbar(block, cfg) {
+  // fetch topbar content
+  const topbarPath = cfg.topbar || '/topbar';
+  const resp = await fetch(`${topbarPath}.plain.html`);
+  if (resp.ok) {
+    const html = await resp.text();
+    const mainDiv = document.createElement('div');
+    mainDiv.setAttribute('class', 'topbar');
+    mainDiv.innerHTML = html;
+    block.append(mainDiv);
+  }
+}
 /**
  * decorates the header, mainly the nav
  * @param {Element} block The header block element
@@ -19,7 +31,7 @@ function collapseAllNavSections(sections) {
 export default async function decorate(block) {
   const cfg = readBlockConfig(block);
   block.textContent = '';
-
+  await decorateTopbar(block, cfg);
   // fetch nav content
   const navPath = cfg.nav || '/nav';
   const resp = await fetch(`${navPath}.plain.html`);
@@ -29,7 +41,6 @@ export default async function decorate(block) {
     // decorate nav DOM
     const nav = document.createElement('nav');
     nav.innerHTML = html;
-    decorateIcons(nav);
 
     const classes = ['brand', 'sections', 'tools'];
     classes.forEach((e, j) => {
@@ -49,6 +60,14 @@ export default async function decorate(block) {
       });
     }
 
+    // active item
+    nav.querySelectorAll(':scope a').forEach((link) => {
+      const url = link.href && new URL(link.href);
+      if (url.pathname === window.location.pathname) {
+        link.classList.add('active');
+      }
+    });
+
     // hamburger for mobile
     const hamburger = document.createElement('div');
     hamburger.classList.add('nav-hamburger');
@@ -60,7 +79,7 @@ export default async function decorate(block) {
     });
     nav.prepend(hamburger);
     nav.setAttribute('aria-expanded', 'false');
-    decorateIcons(nav);
+    // decorateIcons(nav);
     block.append(nav);
   }
 }
