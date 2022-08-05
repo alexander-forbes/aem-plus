@@ -1,0 +1,31 @@
+.card-icon>ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-gap: 16px;
+}
+
+.card-icon-icon>ul>li {
+    border: 0px solid var(--highlight-background-color);
+    background-color: var(--background-color)
+}
+
+.card-icon .card-icon-card-icon-body {
+    margin: 16px;
+}
+
+.card-icon .card-icon-card-icon-image {
+    line-height: 0;
+}
+
+.card-icon .card-icon-card-icon-body>*:first-child {
+    margin-top: 0;
+}
+
+.card-icon>ul>li img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
