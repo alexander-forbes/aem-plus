@@ -64,7 +64,7 @@ main .section.cardsgrid-container {
 }
 
 .cardsgrid>ul>li:nth-child(1) {
-    background-color: #124E57;
+    border: 2px solid var(--nav-background-color);
 }
 
 .cardsgrid>ul>li:nth-child(2) {
