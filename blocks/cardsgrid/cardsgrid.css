@@ -49,8 +49,8 @@ main .section.cardsgrid-container {
 
 .cardsgrid>ul>li>.cardsgrid-card-icon span.icon,
 .cardsgrid>ul>li>div:first-child img {
-    height: 32px;
-    margin: 40px 20px 20px;
+    height: auto;
+    margin: none;
 }
 
 .cardsgrid>ul>li>.cardsgrid-card-icon span.icon {
