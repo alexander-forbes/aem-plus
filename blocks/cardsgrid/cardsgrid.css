@@ -63,7 +63,7 @@ main .section.cardsgrid-container {
     opacity: 1;
 }
 
-.cardsgrid>ul>li:nth-child() {
+.cardsgrid>ul>li:nth-child(n) {
     border: 2px solid var(--nav-background-color);
 }
 
