@@ -160,16 +160,14 @@ export function loadCSS(href, callback) {
   }
 }
 
-/**
- * Retrieves the content of metadata tags.
- * @param {string} name The metadata name (or property)
- * @returns {string} The metadata value(s)
- */
- export function getMetadata(name) {
-  const attr = name && name.includes(':') ? 'property' : 'name';
-  const meta = [...document.head.querySelectorAll(`meta[${attr}="${name}"]`)].map((m) => m.content).join(', ');
-  return meta || null;
-}
+
+
+
+
+
+
+
+
 
 /**
  * Turns absolute links within the domain into relative links.
@@ -599,58 +597,6 @@ export function toClassName(name) {
   return name && typeof name === 'string'
     ? name.toLowerCase().replace(/[^0-9a-z]/gi, '-')
     : '';
-}
-
-/*
- * Sanitizes a name for use as a js property name.
- * @param {string} name The unsanitized name
- * @returns {string} The camelCased name
- */
-export function toCamelCase(name) {
-  return toClassName(name).replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-}
-
-/**
- * Replace icons with inline SVG and prefix with codeBasePath.
- * @param {Element} element
- */
- function replaceIcons(element) {
-  element.querySelectorAll('img.icon').forEach((img) => {
-    const span = document.createElement('span');
-    span.className = img.className;
-    img.replaceWith(span);
-  });
-}
-
-/**
- * Gets placeholders object
- * @param {string} prefix
- */
- export async function fetchPlaceholders(prefix = 'default') {
-  window.placeholders = window.placeholders || {};
-  const loaded = window.placeholders[`${prefix}-loaded`];
-  if (!loaded) {
-    window.placeholders[`${prefix}-loaded`] = new Promise((resolve, reject) => {
-      try {
-        fetch(`${prefix === 'default' ? '' : prefix}/placeholders.json`)
-          .then((resp) => resp.json())
-          .then((json) => {
-            const placeholders = {};
-            json.data.forEach((placeholder) => {
-              placeholders[toCamelCase(placeholder.Key)] = placeholder.Text;
-            });
-            window.placeholders[prefix] = placeholders;
-            resolve();
-          });
-      } catch (e) {
-        // error loading placeholders
-        window.placeholders[prefix] = {};
-        reject();
-      }
-    });
-  }
-  await window.placeholders[`${prefix}-loaded`];
-  return (window.placeholders[prefix]);
 }
 
 /**
@@ -1099,63 +1045,6 @@ export function readBlockConfig(block) {
 }
 
 /**
- * Decorates all sections in a container element.
- * @param {Element} $main The container element
- */
- export function decorateSections($main) {
-  $main.querySelectorAll(':scope > div').forEach((section) => {
-    const wrappers = [];
-    let defaultContent = false;
-    [...section.children].forEach((e) => {
-      if (e.tagName === 'DIV' || !defaultContent) {
-        const wrapper = document.createElement('div');
-        wrappers.push(wrapper);
-        defaultContent = e.tagName !== 'DIV';
-        if (defaultContent) wrapper.classList.add('default-content-wrapper');
-      }
-      wrappers[wrappers.length - 1].append(e);
-    });
-    wrappers.forEach((wrapper) => section.append(wrapper));
-    section.classList.add('section');
-    section.setAttribute('data-section-status', 'initialized');
-
-    /* process section metadata */
-    const sectionMeta = section.querySelector('div.section-metadata');
-    if (sectionMeta) {
-      const meta = readBlockConfig(sectionMeta);
-      const keys = Object.keys(meta);
-      keys.forEach((key) => {
-        if (key === 'style') section.classList.add(toClassName(meta.style));
-        else if (key === 'anchor' || key === 'id') toClassName(section.id = meta[key]);
-        else section.dataset[key] = meta[key];
-      });
-      sectionMeta.remove();
-    }
-  });
-}
-
-/**
- * Updates all section status in a container element.
- * @param {Element} main The container element
- */
- export function updateSectionsStatus(main) {
-  const sections = [...main.querySelectorAll(':scope > div.section')];
-  for (let i = 0; i < sections.length; i += 1) {
-    const section = sections[i];
-    const status = section.getAttribute('data-section-status');
-    if (status !== 'loaded') {
-      const loadingBlock = section.querySelector('.block[data-block-status="initialized"], .block[data-block-status="loading"]');
-      if (loadingBlock) {
-        section.setAttribute('data-section-status', 'loading');
-        break;
-      } else {
-        section.setAttribute('data-section-status', 'loaded');
-      }
-    }
-  }
-}
-
-/**
  * Normalizes all headings within a container element.
  * @param {Element} el The container element
  * @param {[string]]} allowedHeadings The list of allowed headings (h1 ... h6)
@@ -1222,47 +1111,6 @@ export function createOptimizedPicture(src, alt = '', eager = false, breakpoints
   });
 
   return picture;
-}
-
-/**
- * Set template (page structure) and theme (page styles).
- */
- function decorateTemplateAndTheme() {
-  const template = getMetadata('template');
-  if (template) document.body.classList.add(template);
-  const theme = getMetadata('theme');
-  if (theme) document.body.classList.add(theme);
-}
-
-/**
- * decorates paragraphs containing a single link as buttons.
- * @param {Element} element container element
- */
-
- export function decorateButtons(element) {
-  element.querySelectorAll('a').forEach((a) => {
-    a.title = a.title || a.textContent;
-    if (a.href !== a.textContent) {
-      const up = a.parentElement;
-      const twoup = a.parentElement.parentElement;
-      if (!a.querySelector('img')) {
-        if (up.childNodes.length === 1 && (up.tagName === 'P' || up.tagName === 'DIV')) {
-          a.className = 'button primary'; // default
-          up.classList.add('button-container');
-        }
-        if (up.childNodes.length === 1 && up.tagName === 'STRONG'
-            && twoup.childNodes.length === 1 && twoup.tagName === 'P') {
-          a.className = 'button primary';
-          twoup.classList.add('button-container');
-        }
-        if (up.childNodes.length === 1 && up.tagName === 'EM'
-            && twoup.childNodes.length === 1 && twoup.tagName === 'P') {
-          a.className = 'button secondary';
-          twoup.classList.add('button-container');
-        }
-      }
-    }
-  });
 }
 
 /**
@@ -1379,29 +1227,6 @@ export function addFavIcon(href) {
   } else {
     document.getElementsByTagName('head')[0].appendChild(link);
   }
-}
-
-/**
- * load LCP block and/or wait for LCP in default content.
- */
- async function waitForLCP() {
-  // eslint-disable-next-line no-use-before-define
-  const lcpBlocks = LCP_BLOCKS;
-  const block = document.querySelector('.block');
-  const hasLCPBlock = (block && lcpBlocks.includes(block.getAttribute('data-block-name')));
-  if (hasLCPBlock) await loadBlock(block, true);
-
-  document.querySelector('body').classList.add('appear');
-  const lcpCandidate = document.querySelector('main img');
-  await new Promise((resolve) => {
-    if (lcpCandidate && !lcpCandidate.complete) {
-      lcpCandidate.setAttribute('loading', 'eager');
-      lcpCandidate.addEventListener('load', () => resolve());
-      lcpCandidate.addEventListener('error', () => resolve());
-    } else {
-      resolve();
-    }
-  });
 }
 
 /**
