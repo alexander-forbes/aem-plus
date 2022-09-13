@@ -199,7 +199,7 @@ button:disabled, button:disabled:hover {
 a.button.secondary, button.secondary {
   background-color: unset;
   border: 2px solid currentcolor;
-  color: var(--text-color)
+  color: var(--button-color)
 }
 
 a.button.secondary:hover, button.secondary:hover {
