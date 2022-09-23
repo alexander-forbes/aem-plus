@@ -27,8 +27,8 @@ main .hero h2 {
 }
 
 main .hero h1 {
-    margin: 120px;
-    font-size: 36px;
+    margin-top: 240px;
+    font-size: 28px;
 }
 
 main .hero h2 {
@@ -36,21 +36,20 @@ main .hero h2 {
 }
 
 main .hero picture {
-    position:absolute;
+    position: absolute;
     z-index: -1;
     top: 0;
     left: 0;
     bottom: 0;
     right: 0;
     box-sizing: border-box;
-    background-size:cover;
 }
 
 main .hero img {
     object-fit: cover;
     width: auto;
     height: 80vh;
-    max-height: 300px;
+    max-height: 800px;
 }
 
 @media (min-width:900px) {
@@ -60,7 +59,7 @@ main .hero img {
     }
 
     main .hero h1 {
-        font-size: 36px;
+        font-size: 48px;
     }
 
     main .hero img {
