@@ -105,9 +105,10 @@ main .section.cards-container {
 
 .cards.image>ul>li {
     position: relative;
-    border-radius: 0;
-    background-color: transparent;
+    border-radius: 25px;
+    background-color: #ededed;
     max-width: 516px;
+    min-width: 280px;
     margin: 40px auto 0;
 }
 
@@ -130,7 +131,7 @@ main .section.cards-container {
 .cards.image .cards-card-body {
     margin: 40px 20px 20px;
     padding: 20px;
-    background-color: rgba(255 255 255 / 80%);
+    background-color: rgba(237 237 237 / 80%);
     color: var(--text-color);
     font-size: var(--body-font-size-s);
     line-height: 1.6;
@@ -139,8 +140,8 @@ main .section.cards-container {
 }
 
 .cards.image li:hover .cards-card-body {
-    background-color: var(--nav-background-color);
-    color: white;
+    /* background-color: var(--nav-background-color);
+    color: white; */
 }
 
 .cards.image .cards-card-icon {
@@ -176,16 +177,29 @@ main .section.cards-container {
 }
 
 .cards.image .cards-card-body a.button {
-    display: initial;
-    background: none;
-    border: none;
-    border-radius: 0;
-    margin: 0;
-    padding: 0;
-    white-space: initial;
-    font-size: var(--cards-font-size);
-    font-weight: var(--cards-font-weight);
+    font-family: var(--font-family-body);
+    display: inline-block;
+    box-sizing: border-box;
+    text-decoration: none;
+    border: 2px solid var(--link-color);
+    padding: 15px 60px;
+    text-align: center;
+    font-style: normal;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--link-color);
+    background-color: transparent;
+    margin: 20px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 30px;
 }
+
+.cards.image .cards-card-body a.button:hover{
+    color: var(--background-color);
+    background-color: var(--link-color);
+    }
 
 @media (min-width:900px) {
     .cards.image>ul {
