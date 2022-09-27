@@ -84,10 +84,6 @@ main .section.cards-container {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
 
-    .cards p {
-        font-size: 14px;
-    }
-
     .cards .cards-card-body {
         font-size: 15px;
     }
@@ -97,7 +93,7 @@ main .section.cards-container {
     }
 
     .section>.cards-wrapper {
-        max-width: 1280px;
+        max-width: 960px;
     }
 }
 
@@ -110,10 +106,9 @@ main .section.cards-container {
 .cards.image>ul>li {
     position: relative;
     border-radius: 0;
-    background-color: #ededed;
+    background-color: transparent;
     max-width: 516px;
     margin: 40px auto 0;
-    border-radius:  25px;
 }
 
 .cards.image .cards-card-image picture {
@@ -130,25 +125,22 @@ main .section.cards-container {
     width: 100%;
     height: 100%;
     margin: 0;
-    background-color:  #ededed;
-    border-radius: 25px;
 }
 
 .cards.image .cards-card-body {
     margin: 40px 20px 20px;
     padding: 20px;
-    background-color: rgba(237 237 237 / 80%);
-    color: #124e57;
+    background-color: rgba(255 255 255 / 80%);
+    color: var(--text-color);
     font-size: var(--body-font-size-s);
     line-height: 1.6;
     text-align: center;
     transition: all 0.3s linear;
 }
 
-
 .cards.image li:hover .cards-card-body {
-   /* background-color: var(--nav-background-color);
-    color: white; */
+    background-color: var(--nav-background-color);
+    color: white;
 }
 
 .cards.image .cards-card-icon {
@@ -183,39 +175,21 @@ main .section.cards-container {
     text-align: center;
 }
 
-
 .cards.image .cards-card-body a.button {
-    font-family: var(--font-family-body);
-    display: inline-block;
-    box-sizing: border-box;
-    text-decoration: none;
-    border: 2px solid var(--link-color);
-    padding: 15px 60px;
-    text-align: center;
-    font-style: normal;
-    font-weight: 600;
-    cursor: pointer;
-    color: var(--link-color);
-    background-color: transparent;
-    margin: 20px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-radius: 30px;
+    display: initial;
+    background: none;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    padding: 0;
+    white-space: initial;
+    font-size: var(--cards-font-size);
+    font-weight: var(--cards-font-weight);
 }
-
-
-.cards.image .cards-card-body a.button:hover{
-    color: var(--background-color);
-    background-color: var(--link-color);
-    }
-
-
 
 @media (min-width:900px) {
     .cards.image>ul {
-        grid-template-columns: repeat(auto-fill, minmax(20%, 1fr));
-        /* max-width: 1500px; */
+        grid-template-columns: repeat(auto-fill, minmax(30%, 1fr));
     }
 }
 
@@ -287,3 +261,17 @@ main .section.cards-container {
         flex-direction: row;
     }
 }
+Footer
+© 2022 GitHub, Inc.
+Footer navigation
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
