@@ -234,6 +234,92 @@ main .section.grey {
   background-color: var(--overlay-background-color);
 }
 
+main .section.darkteal {
+  background-color: #124e57;
+  color: #fff;
+}
+
+main .section.balancedteal {
+  background-color: #15808d;
+  color: #fff;
+}
+
+main .section.space {
+  background-color: #0b1727;
+  color: #fff;
+}
+
+main .section.peacock {
+  background-color: #113441;
+  color: #fff;
+}
+
+main .section.artichoke {
+  background-color: #a5a883;
+  color: #00
+}
+
+main .section.eggshell {
+  background-color: #f1f0d6;
+  color: #000;
+}
+
+main .section.firebrick {
+  background-color: #a4232f;
+  color: #fff;
+}
+
+main .section.rust {
+  background-color: #b84a26;
+  color: #fff;
+}
+
+main .section.earth {
+  background-color: #8d6c5b;
+  color: #fff;
+}
+
+main .section.macaroon {
+  background-color: #f09c50;
+  color: #000;
+}
+
+main .section.sandcastle {
+  background-color: #f1d7af;
+  color: #000;
+}
+
+main .section.coralred {
+  background-color: #f04e45;
+  color: #000;
+}
+
+main .section.tuscany {
+  background-color: #f1b81b;
+  color: #000;
+}
+
+main .section.cobalt {
+  background-color: #126fb7;
+  color: #fff;
+}
+
+main .section.sky {
+  background-color: #29c1db;
+  color: #000;
+}
+
+main .section.pear {
+  background-color: #80c342;
+  color: #000;
+}
+
+main .section.fern {
+  background-color: #407168;
+  color: #fff;
+}
+
+
 main pre {
   background-color: var(--overlay-background-color);
   padding: 1em;
