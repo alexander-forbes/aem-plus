@@ -49,6 +49,8 @@ main .columns p {
   margin: 16px 0;
   font-size: var(--body-font-size-l);
   line-height: 1.33;
+  text-align: center;
+  padding: 0 5px;
 }
 
 main .columns p.powered-by {
@@ -72,6 +74,8 @@ main .columns .column-picture {
 main .columns h1{
   font-size: var(--heading-font-size-xxl);
   line-height: 1.06;
+  text-align: center;
+  padding: 0 5px;
 }
 
 main .columns h1.columns-heading-long {
