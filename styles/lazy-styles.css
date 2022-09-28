@@ -136,6 +136,29 @@ span.icon-door-open::before {
   content: "\F308";
 }
 
+
+
+span.icon-bi-credit-card::before {
+  font-family: bootstrap-icons;
+  content: "\F2DC";
+}
+
+span.icon-bi-bank::before {
+  font-family: bootstrap-icons;
+  content: "\F62E";
+}
+
+span.icon-bi-grapgh-up-arrow::before {
+  font-family: bootstrap-icons;
+  content: "\F673";
+}
+
+span.icon-bi-person-hearts::before {
+  font-family: bootstrap-icons;
+  content: "\F77B";
+}
+
+
 .retirement-picture ul li::marker {
   font-family: bootstrap-icons;
   content: "\F234";
